@@ -1,5 +1,27 @@
 {
-  "Tomato Blight": "Spray copper-based fungicide. Remove infected lower leaves immediately and ensure adequate spacing for airflow.",
-  "Potato Blight": "Apply mancozeb or chlorothalonil fungicide. Avoid overhead irrigation to keep leaves dry.",
-  "Healthy": "No treatment required. Crop is healthy!"
+  "Tomato Blight": {
+    "prevention": "Avoid overhead irrigation to keep leaves dry and maintain proper crop spacing for airflow.",
+    "treatment": "Spray copper-based fungicide. Remove infected lower leaves immediately and ensure adequate spacing for airflow.",
+    "care": "Avoid watering foliage directly for 24 hours after fungicide application. Add organic compost to rebuild plant strength and inspect daily."
+  },
+  "Tomato Blight": {
+    "prevention": "Avoid overhead irrigation to keep leaves dry and maintain proper crop spacing for airflow.",
+    "treatment": "Spray copper-based fungicide. Remove infected lower leaves immediately and ensure adequate spacing for airflow.",
+    "care": "Avoid watering foliage directly for 24 hours after fungicide application. Add organic compost to rebuild plant strength and inspect daily."
+  },
+  "1 Potato Blight": {
+    "prevention": "Use certified disease-free seeds and mulch around the base of plants.",
+    "treatment": "Apply mancozeb or chlorothalonil fungicide. Avoid overhead irrigation to keep leaves dry.",
+    "care": "Prune severely affected stems and sterilize tools with rubbing alcohol to prevent cross-contamination."
+  },
+  "Potato Blight": {
+    "prevention": "Use certified disease-free seeds and mulch around the base of plants.",
+    "treatment": "Apply mancozeb or chlorothalonil fungicide. Avoid overhead irrigation to keep leaves dry.",
+    "care": "Prune severely affected stems and sterilize tools with rubbing alcohol to prevent cross-contamination."
+  },
+  "Healthy": {
+    "prevention": "Maintain regular watering at soil level and apply organic mulch.",
+    "treatment": "No treatment required. Crop is healthy!",
+    "care": "Continue standard crop management and routine field inspection."
+  }
 }

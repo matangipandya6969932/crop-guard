@@ -23,7 +23,6 @@ async function initAI() {
         .split('\n')
         .map(l => l.replace(/^\d+\s*/, '').trim())
         .filter(l => l.length > 0);
-      console.log('Active Label Array:', labels);
     }
 
     const remedyRes = await fetch(REMEDIES_PATH);
@@ -34,7 +33,6 @@ async function initAI() {
     if (window.tflite) {
       tflite.setWasmPath('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.9/dist/');
       tfliteModel = await tflite.loadTFLiteModel(MODEL_PATH);
-      console.log('TFLite Model Active.');
     }
   } catch (err) {
     console.error('Initialization error:', err);
@@ -69,7 +67,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
             if (tfliteModel && window.tf) {
               try {
-                // Normalize Tensor between [0, 1]
                 const imgTensor = tf.browser.fromPixels(imagePreview)
                   .resizeNearestNeighbor([224, 224])
                   .toFloat()
@@ -80,7 +77,6 @@ window.addEventListener('DOMContentLoaded', () => {
                 const outputData = await outputTensor.data();
                 const scores = Array.from(outputData);
 
-                // Find top score index
                 maxIndex = scores.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0);
                 
                 const topVal = scores[maxIndex];
@@ -94,10 +90,8 @@ window.addEventListener('DOMContentLoaded', () => {
               }
             }
 
-            // Map predicted index to corrected labels array
             const cleanLabel = labels[maxIndex] || 'Potato Blight';
 
-            // Match remedy database record
             const info = remediesData[cleanLabel] || remediesData["Potato Blight"] || remediesData["Tomato Blight"] || remediesData["Healthy"] || {
               prevention: 'Maintain proper crop spacing and avoid overhead watering.',
               treatment: 'Apply recommended organic or copper-based fungicide.',
@@ -106,7 +100,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
             const formattedAccuracy = accuracy.toFixed(1);
 
-            // Render Output UI
             setTimeout(() => {
               resultDiv.innerHTML = `
                 <div style="background: #ffffff; border: 1px solid #c8e6c9; padding: 18px; border-radius: 12px; text-align: left; margin-top: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">

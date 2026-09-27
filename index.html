@@ -9,24 +9,24 @@
 </head>
 <body>
   <div class="container">
-    <div class="logo">🌱 CropGuard</div>
-    <p>Offline AI Plant Disease Identification</p>
+    <header>
+      <h1>🌱 CropGuard</h1>
+      <p>Offline AI Plant Disease Identification</p>
+    </header>
 
     <!-- Upload Button -->
-    <button id="uploadBtn" onclick="document.getElementById('imageInput').click()">
-      📷 Take Photo or Upload
-    </button>
+    <button id="uploadBtn" type="button">📷 Take Photo or Upload</button>
 
     <!-- Hidden File Input -->
     <input type="file" id="imageInput" accept="image/*" style="display: none;">
 
-    <!-- Preview Container -->
-    <div id="previewContainer">
-      <img id="preview" src="" alt="Selected Leaf" style="display: none; max-width: 100%; margin-top: 20px; border-radius: 10px;">
+    <!-- Image Preview Area -->
+    <div id="previewContainer" style="margin-top: 20px;">
+      <img id="imagePreview" src="" alt="Selected Leaf" style="display: none; max-width: 100%; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
     </div>
 
-    <!-- Results Container -->
-    <div id="result" style="margin-top: 20px; font-weight: bold; font-size: 1.1rem;"></div>
+    <!-- Diagnostic Results Display -->
+    <div id="result" style="margin-top: 20px; font-weight: bold; font-size: 1.1rem; text-align: center;"></div>
   </div>
 
   <script src="app.js"></script>

@@ -1,3 +1,3 @@
- Tomato Blight
- Potato Blight
- Healthy
+Tomato Blight
+Potato Blight
+Healthy

@@ -6,6 +6,10 @@
   <title>CropGuard</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
+
+  <!-- TensorFlow.js Core & TFLite Support -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.9/dist/tf-tflite.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -14,19 +18,14 @@
       <p>Offline AI Plant Disease Identification</p>
     </header>
 
-    <!-- Upload Button -->
     <button id="uploadBtn" type="button">📷 Take Photo or Upload</button>
-
-    <!-- Hidden File Input -->
     <input type="file" id="imageInput" accept="image/*" style="display: none;">
 
-    <!-- Image Preview Area -->
     <div id="previewContainer" style="margin-top: 20px;">
       <img id="imagePreview" src="" alt="Selected Leaf" style="display: none; max-width: 100%; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
     </div>
 
-    <!-- Diagnostic Results Display -->
-    <div id="result" style="margin-top: 20px; font-weight: bold; font-size: 1.1rem; text-align: center;"></div>
+    <div id="result" style="margin-top: 20px;"></div>
   </div>
 
   <script src="app.js"></script>

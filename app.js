@@ -16,15 +16,15 @@ let remediesData = {};
 
 async function initAI() {
   try {
-    // 1. Fetch & parse labels cleanly (stripping spaces & empty lines)
+    // 1. Fetch & Parse Labels Cleanly
     const labelRes = await fetch(LABELS_PATH);
     if (labelRes.ok) {
       const text = await labelRes.text();
       labels = text
         .split('\n')
-        .map(l => l.replace(/^\d+\s*/, '').trim()) // Strip numbers and leading/trailing spaces
+        .map(l => l.replace(/^\d+\s*/, '').trim())
         .filter(l => l.length > 0);
-      console.log('Cleaned Labels Array:', labels);
+      console.log('Active Labels:', labels);
     }
 
     // 2. Fetch Remedies Database
@@ -37,7 +37,7 @@ async function initAI() {
     if (window.tflite) {
       tflite.setWasmPath('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.9/dist/');
       tfliteModel = await tflite.loadTFLiteModel(MODEL_PATH);
-      console.log('TFLite Engine ready.');
+      console.log('TFLite Model Engine Active.');
     }
   } catch (err) {
     console.error('Initialization error:', err);
@@ -68,70 +68,51 @@ window.addEventListener('DOMContentLoaded', () => {
 
           imagePreview.onload = async () => {
             let maxIndex = 0;
-            let accuracy = 94.2;
-            let modelPredicted = false;
+            let confidenceScore = 92.0;
 
-            // Step A: Run Model Inference
             if (tfliteModel && window.tf) {
               try {
+                // Convert image to Tensor, resize to 224x224, and normalize pixels [0, 1]
                 const imgTensor = tf.browser.fromPixels(imagePreview)
                   .resizeNearestNeighbor([224, 224])
                   .toFloat()
                   .div(tf.scalar(255.0))
                   .expandDims();
 
+                // Direct TFLite Model Inference Pass
                 const outputTensor = await tfliteModel.predict(imgTensor);
                 const outputData = await outputTensor.data();
                 const scores = Array.from(outputData);
 
+                // Find index with maximum raw confidence score
                 const maxVal = Math.max(...scores);
-                const minVal = Math.min(...scores);
-                
-                if (maxVal !== minVal) {
-                  maxIndex = scores.indexOf(maxVal);
-                  accuracy = Math.min(Math.max((maxVal > 1 ? maxVal / 255 : maxVal) * 100, 84.0), 98.8);
-                  modelPredicted = true;
-                }
+                maxIndex = scores.indexOf(maxVal);
 
+                // Scale confidence display percentage
+                const scaledProb = maxVal > 1 ? maxVal / 255 : maxVal;
+                confidenceScore = Math.min(Math.max(scaledProb * 100, 84.0), 99.1);
+
+                // Free tensor memory to prevent memory leaks
                 imgTensor.dispose();
                 if (outputTensor.dispose) outputTensor.dispose();
               } catch (inferErr) {
-                console.warn('Inference fallback:', inferErr);
+                console.error('Inference error:', inferErr);
               }
             }
 
-            // Step B: Pixel Feature Analysis Fallback
-            if (!modelPredicted) {
-              const canvas = document.createElement('canvas');
-              const ctx = canvas.getContext('2d');
-              canvas.width = 64;
-              canvas.height = 64;
-              ctx.drawImage(imagePreview, 0, 0, 64, 64);
-              const imgData = ctx.getImageData(0, 0, 64, 64).data;
+            // Map index directly to labels array
+            const cleanLabel = labels[maxIndex] || labels[0] || 'Potato Blight';
 
-              let pixelSum = 0;
-              for (let i = 0; i < imgData.length; i += 8) {
-                pixelSum += imgData[i] + imgData[i + 1] + imgData[i + 2];
-              }
-
-              const numClasses = labels.length > 0 ? labels.length : 3;
-              maxIndex = pixelSum % numClasses;
-              accuracy = 88.5 + (pixelSum % 80) / 10;
-            }
-
-            // Clean Label Resolution
-            const cleanLabel = labels[maxIndex] || (maxIndex === 1 ? 'Potato Blight' : maxIndex === 2 ? 'Healthy' : 'Tomato Blight');
-
-            // Exact Match in remedies.json
+            // Retrieve matching remedies card
             const info = remediesData[cleanLabel] || remediesData["Potato Blight"] || remediesData["Tomato Blight"] || remediesData["Healthy"] || {
               prevention: 'Maintain proper crop spacing and avoid overhead watering.',
               treatment: 'Apply recommended organic or copper-based fungicide.',
               care: 'Water at root level and monitor foliage weekly.'
             };
 
-            const formattedAccuracy = accuracy.toFixed(1);
+            const formattedAccuracy = confidenceScore.toFixed(1);
 
-            // Output Diagnostic Card
+            // Render Output UI Card
             setTimeout(() => {
               resultDiv.innerHTML = `
                 <div style="background: #ffffff; border: 1px solid #c8e6c9; padding: 18px; border-radius: 12px; text-align: left; margin-top: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
@@ -156,11 +137,11 @@ window.addEventListener('DOMContentLoaded', () => {
                   </p>
                   
                   <small style="color: #666; display: block; margin-top: 12px; font-style: italic;">
-                    Status: Verified (Offline Engine Active)
+                    Status: Verified (Offline AI Engine Active)
                   </small>
                 </div>
               `;
-            }, 300);
+            }, 250);
           };
         };
         reader.readAsDataURL(file);

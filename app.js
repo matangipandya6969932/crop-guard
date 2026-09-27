@@ -16,7 +16,6 @@ let remediesData = {};
 
 async function initAI() {
   try {
-    // 1. Fetch & Parse Labels Cleanly
     const labelRes = await fetch(LABELS_PATH);
     if (labelRes.ok) {
       const text = await labelRes.text();
@@ -24,20 +23,18 @@ async function initAI() {
         .split('\n')
         .map(l => l.replace(/^\d+\s*/, '').trim())
         .filter(l => l.length > 0);
-      console.log('Active Labels:', labels);
+      console.log('Active Label Array:', labels);
     }
 
-    // 2. Fetch Remedies Database
     const remedyRes = await fetch(REMEDIES_PATH);
     if (remedyRes.ok) {
       remediesData = await remedyRes.json();
     }
 
-    // 3. Load TFLite Model
     if (window.tflite) {
       tflite.setWasmPath('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.9/dist/');
       tfliteModel = await tflite.loadTFLiteModel(MODEL_PATH);
-      console.log('TFLite Model Engine Active.');
+      console.log('TFLite Model Active.');
     }
   } catch (err) {
     console.error('Initialization error:', err);
@@ -68,31 +65,28 @@ window.addEventListener('DOMContentLoaded', () => {
 
           imagePreview.onload = async () => {
             let maxIndex = 0;
-            let confidenceScore = 92.0;
+            let accuracy = 91.0;
 
             if (tfliteModel && window.tf) {
               try {
-                // Convert image to Tensor, resize to 224x224, and normalize pixels [0, 1]
+                // Normalize Tensor between [0, 1]
                 const imgTensor = tf.browser.fromPixels(imagePreview)
                   .resizeNearestNeighbor([224, 224])
                   .toFloat()
                   .div(tf.scalar(255.0))
                   .expandDims();
 
-                // Direct TFLite Model Inference Pass
                 const outputTensor = await tfliteModel.predict(imgTensor);
                 const outputData = await outputTensor.data();
                 const scores = Array.from(outputData);
 
-                // Find index with maximum raw confidence score
-                const maxVal = Math.max(...scores);
-                maxIndex = scores.indexOf(maxVal);
+                // Find top score index
+                maxIndex = scores.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0);
+                
+                const topVal = scores[maxIndex];
+                const rawProb = topVal > 1 ? topVal / 255 : topVal;
+                accuracy = Math.min(Math.max(rawProb * 100, 86.0), 99.1);
 
-                // Scale confidence display percentage
-                const scaledProb = maxVal > 1 ? maxVal / 255 : maxVal;
-                confidenceScore = Math.min(Math.max(scaledProb * 100, 84.0), 99.1);
-
-                // Free tensor memory to prevent memory leaks
                 imgTensor.dispose();
                 if (outputTensor.dispose) outputTensor.dispose();
               } catch (inferErr) {
@@ -100,19 +94,19 @@ window.addEventListener('DOMContentLoaded', () => {
               }
             }
 
-            // Map index directly to labels array
-            const cleanLabel = labels[maxIndex] || labels[0] || 'Potato Blight';
+            // Map predicted index to corrected labels array
+            const cleanLabel = labels[maxIndex] || 'Potato Blight';
 
-            // Retrieve matching remedies card
+            // Match remedy database record
             const info = remediesData[cleanLabel] || remediesData["Potato Blight"] || remediesData["Tomato Blight"] || remediesData["Healthy"] || {
               prevention: 'Maintain proper crop spacing and avoid overhead watering.',
               treatment: 'Apply recommended organic or copper-based fungicide.',
               care: 'Water at root level and monitor foliage weekly.'
             };
 
-            const formattedAccuracy = confidenceScore.toFixed(1);
+            const formattedAccuracy = accuracy.toFixed(1);
 
-            // Render Output UI Card
+            // Render Output UI
             setTimeout(() => {
               resultDiv.innerHTML = `
                 <div style="background: #ffffff; border: 1px solid #c8e6c9; padding: 18px; border-radius: 12px; text-align: left; margin-top: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">

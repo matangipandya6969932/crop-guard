@@ -1,0 +1,3 @@
+0 Tomato Blight
+1 Potato Blight
+2 Healthy

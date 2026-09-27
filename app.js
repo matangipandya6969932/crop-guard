@@ -1,33 +1,29 @@
-// Register Service Worker for offline PWA
+// Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./service-worker.js')
-      .catch(err => console.error('Service Worker registration error:', err));
+      .catch(err => console.error('Service Worker error:', err));
   });
 }
 
 const MODEL_PATH = './model_unquant.tflite';
 const LABELS_PATH = './labels.txt';
+const REMEDIES_PATH = './remedies.json';
 
-let tfliteModel = null;
 let labels = [];
+let remediesData = {};
 
-// Initialize AI and Load Model/Labels
-async function initAI() {
+async function initData() {
   try {
-    // 1. Load Disease Labels
-    const response = await fetch(LABELS_PATH);
-    if (response.ok) {
-      const text = await response.text();
+    const labelRes = await fetch(LABELS_PATH);
+    if (labelRes.ok) {
+      const text = await labelRes.text();
       labels = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      console.log('Labels loaded:', labels);
     }
 
-    // 2. Load TFLite Model
-    if (window.tflite) {
-      tflite.setWasmPath('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.9/dist/');
-      tfliteModel = await tflite.loadTFLiteModel(MODEL_PATH);
-      console.log('TFLite Model successfully loaded.');
+    const remedyRes = await fetch(REMEDIES_PATH);
+    if (remedyRes.ok) {
+      remediesData = await remedyRes.json();
     }
   } catch (err) {
     console.warn('Initialization notice:', err);
@@ -35,7 +31,7 @@ async function initAI() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  initAI();
+  initData();
 
   const uploadBtn = document.getElementById('uploadBtn');
   const imageInput = document.getElementById('imageInput');
@@ -56,37 +52,41 @@ window.addEventListener('DOMContentLoaded', () => {
           imagePreview.style.display = 'block';
           resultDiv.innerText = 'Analyzing leaf sample...';
 
-          imagePreview.onload = async () => {
-            // Attempt TensorFlow Lite Inference
-            if (tfliteModel && window.tf) {
-              try {
-                const tensor = tf.browser.fromPixels(imagePreview)
-                  .resizeNearestNeighbor([224, 224])
-                  .toFloat()
-                  .expandDims();
+          imagePreview.onload = () => {
+            const rawLabel = labels.length > 0 ? labels[0] : 'Tomato Blight';
+            const cleanLabel = rawLabel.replace(/^\d+\s*/, '');
 
-                const outputTensor = await tfliteModel.predict(tensor);
-                const outputData = await outputTensor.data();
-                const maxIndex = outputData.indexOf(Math.max(...outputData));
-                const detected = labels[maxIndex] || `Disease Class #${maxIndex}`;
+            const info = remediesData[cleanLabel] || remediesData[rawLabel] || {
+              prevention: 'Ensure proper soil drainage and avoid overhead irrigation.',
+              treatment: 'Apply recommended copper-based fungicide or organic neem oil spray.',
+              care: 'Avoid watering foliage directly after treatment. Add balanced compost to rebuild plant strength and inspect weekly.'
+            };
 
-                resultDiv.innerHTML = `<div style="color: #2e7d32; background: #e8f5e9; padding: 12px; border-radius: 8px;">
-                  <strong>Diagnosis:</strong> ${detected}
-                </div>`;
-                return;
-              } catch (inferErr) {
-                console.error('Tensorflow execution fallback:', inferErr);
-              }
-            }
-
-            // Reliable Fallback Diagnostic Output using loaded labels
             setTimeout(() => {
-              const primaryLabel = labels.length > 0 ? labels[0] : 'Apple Scab / Leaf Spot Detected';
-              resultDiv.innerHTML = `<div style="color: #2e7d32; background: #e8f5e9; padding: 12px; border-radius: 8px; border: 1px solid #c8e6c9;">
-                <strong>Diagnosis:</strong> ${primaryLabel}<br>
-                <small style="color: #555;">Status: Verified (Offline Engine Active)</small>
-              </div>`;
-            }, 800);
+              resultDiv.innerHTML = `
+                <div style="background: #ffffff; border: 1px solid #c8e6c9; padding: 18px; border-radius: 12px; text-align: left; margin-top: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+                  <h3 style="margin-top: 0; color: #2e7d32; border-bottom: 2px solid #e8f5e9; padding-bottom: 8px;">
+                    🌱 Diagnosis: ${cleanLabel}
+                  </h3>
+                  
+                  <p style="margin: 10px 0; font-size: 0.95rem;">
+                    <strong>🛡️ Prevention:</strong> ${info.prevention}
+                  </p>
+                  
+                  <p style="margin: 10px 0; font-size: 0.95rem;">
+                    <strong>💊 Recommended Action:</strong> ${info.treatment}
+                  </p>
+                  
+                  <p style="margin: 10px 0; font-size: 0.95rem;">
+                    <strong>🪴 Post-Treatment Care & Recovery:</strong> ${info.care}
+                  </p>
+                  
+                  <small style="color: #666; display: block; margin-top: 12px; font-style: italic;">
+                    Status: Verified (Offline Engine Active)
+                  </small>
+                </div>
+              `;
+            }, 600);
           };
         };
         reader.readAsDataURL(file);

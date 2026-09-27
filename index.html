@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CropGuard - AI Leaf Diagnostic</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.9/dist/tf-tflite.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🌱 CropGuard</h1>
+      <p>Offline AI Plant Disease Identification</p>
+    </header>
+
+    <main>
+      <div class="upload-card">
+        <label for="imageUpload" class="btn-primary">
+          📷 Take Photo or Upload
+        </label>
+        <input type="file" id="imageUpload" accept="image/*" capture="environment" hidden>
+        
+        <div id="imagePreviewContainer" class="preview-box hidden">
+          <img id="imagePreview" alt="Selected Leaf">
+        </div>
+      </div>
+
+      <div id="resultCard" class="card hidden">
+        <h2>Diagnostic Results</h2>
+        <div id="statusBadge" class="badge"></div>
+        <p id="confidenceScore" class="confidence"></p>
+        
+        <hr>
+        
+        <h3>Recommended Action</h3>
+        <p id="remedyText" class="remedy"></p>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

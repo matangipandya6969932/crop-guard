@@ -1,0 +1,15 @@
+{
+  "name": "CropGuard AI",
+  "short_name": "CropGuard",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f6f8",
+  "theme_color": "#2e7d32",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/628/628324.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
